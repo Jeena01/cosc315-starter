@@ -1,0 +1,11 @@
+Provide your answer for Q2 here:
+Part A:
+
+malloc takes one argument(number of bytes to allocate) and calloc takes two(number of blocks, number of bytes per block)
+
+Part B:
+
+malloc is faster
+
+void *malloc(size_t size);
+void *calloc(size_t nmemb, size_t size);
