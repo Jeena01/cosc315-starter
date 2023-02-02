@@ -1,11 +1,12 @@
 Provide your answer for Q2 here:
 Part A:
-
+calloc returns a buffer initialized with 0 whereas malloc returns a pointer to a memory space of specified size.
+calloc initializes and malloc doesnt.
 malloc takes one argument(number of bytes to allocate) and calloc takes two(number of blocks, number of bytes per block)
 
 Part B:
 
-malloc is faster
+malloc is faster as calloc needs to initialize the memory location allocated.
 
 void *malloc(size_t size);
 void *calloc(size_t nmemb, size_t size);
