@@ -57,6 +57,14 @@ int main(void) {
     // c[i] should equal a[i] + b[i]
     // Make sure to error check.
     // +1
+    int *a = malloc(ARRAY_SIZE*sizeof(int));
+    int *b = malloc(ARRAY_SIZE*sizeof(int));
+    int *c = malloc(ARRAY_SIZE*sizeof(int));
+    
+    if(a==NULL||b==NULL||c==NULL){
+        printf("Not enough memory.");
+        exit(1);
+    }
 
     // @TODO
     // Create two pthreads and initialize a and b with
@@ -78,9 +86,12 @@ int main(void) {
     // Print out the first 10 elements of the result array and the final
     // period for the add_arrays threaded function runs.
     // +2
+    
 
     // Free the memory
     // +1
-
+    free(a);
+    free(b);
+    free(c);
     return 0;
 }

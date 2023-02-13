@@ -11,7 +11,10 @@ void add_arrays(int* result, int* a, int* b, int array_size) {
     // +4
     while (array_size>0)
     {
-        result[array_size-1]=a[array_size-1]+b[array_size-1];
+        *result= *a + *b;
+        result++;
+        a++;
+        b++;
         array_size=array_size-1;
     }
 
@@ -40,20 +43,43 @@ int main(void) {
     // c[i] should equal a[i] + b[i]
     // Make sure to error check.
     // +1
+    int *a = malloc(ARRAY_SIZE*sizeof(int));
+    int *b = malloc(ARRAY_SIZE*sizeof(int));
+    int *c = malloc(ARRAY_SIZE*sizeof(int));
+    
+    if(a==NULL||b==NULL||c==NULL){
+        printf("Not enough memory.");
+        exit(1);
+    }
     
     // @TODO
     // Initialize the two arrays, a and b, with random values 
     // of size ARRAY_SIZE and measure the time it takes to do so.
     // +1
-
+    clock_t t;
+    t = clock();
+    rand_init(a,ARRAY_SIZE);
+    rand_init(b,ARRAY_SIZE);
+    t=clock()-t;
     // @TODO
     // Print the total time for initialization
     // +1
+    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    printf("Total init time: %f\n s",time_taken);
 
     // @TODO
     // Run and time the add operation, print the first ten elements
     // of the result array, and print the total add time.
     // +2
-
-    return 0;
+    t = clock();
+    add_arrays(c,a,b,ARRAY_SIZE);
+    t=clock()-t;
+    time_taken = ((double)t)/CLOCKS_PER_SEC;
+    for (int i = 0; i < ARRAY_SIZE; i++) {     
+        printf("%d ", c[i]);     
+    }      
+    printf("\nTotal add time: %fs",time_taken);
+    free(a);
+    free(b);
+    free(c);
 }
