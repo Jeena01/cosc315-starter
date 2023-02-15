@@ -53,7 +53,7 @@ void* rand_init(void* arg) {
      int **val_p = (int **) arg;
      int* array = *val_p;
      int seed=time(NULL);
-        seed = seed * getpid();
+        seed += pthread_self()+ getpid();
      for (int i = 0; i < ARRAY_SIZE; i++)
     {
         

@@ -1,6 +1,6 @@
 A): In Q2, replace rand_r with rand. Is there a difference in total initialization runtime? If so, why?
 Yes, there is a huge difference. rand seems to be much slower than rand_r.
-
+rand returns the next number in the sequence, which means the sequence must be fetched and then the number however rand_r simply returns 
 
 B) In Q2, is your add operation faster or slower than the code for Q1? Why or why not?
 
