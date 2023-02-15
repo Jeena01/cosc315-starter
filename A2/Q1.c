@@ -12,9 +12,9 @@ void add_arrays(int* result, int* a, int* b, int array_size) {
     while (array_size>0)
     {
         *result= *a + *b;
-        *result++;
-        *a++;
-        *b++;
+        result++;
+        a++;
+        b++;
         array_size=array_size-1;
     }
 
@@ -65,7 +65,7 @@ int main(void) {
     // Print the total time for initialization
     // +1
     double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    printf("Total init time: %.2f ms\n",(time_taken*100));
+    printf("Total init time: %.2f ms\n",(time_taken*1000));
 
     // @TODO
     // Run and time the add operation, print the first ten elements
@@ -78,7 +78,7 @@ int main(void) {
     for (int i = 0; i < 10; i++) {     
         printf("%d ", c[i]);     
     }      
-    printf("\nTotal add time: %.2fs \n",(time_taken*100));
+    printf("\nTotal add time: %.2fms \n",(time_taken*1000));
     free(a);
     free(b);
     free(c);

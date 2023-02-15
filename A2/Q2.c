@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define ARRAY_SIZE 50000000
+#define ARRAY_SIZE 500000
 
 // The following is a struct in C.
 // This paradigm allows for arbitrary data to be stored
@@ -29,10 +29,12 @@ void* add_arrays(void* arg) {
     // HINT: Work should be split half-and-half. Use start_idx
     // to coordinate this.
     // +5
-    start_idx=ARRAY_SIZE/2;
+    for (int i = 0; i < ARRAY_SIZE/2; i++)
+    {
+        thread_data.c[thread_data.start_idx]=thread_data.a[thread_data.start_idx]+thread_data.b[thread_data.start_idx];
+        thread_data.start_idx++;
+    }
     
-
-
     pthread_exit(NULL);
 }
 
@@ -48,10 +50,15 @@ void* rand_init(void* arg) {
     // HINT: The input parameter should be an array, not a struct.
     // +5
 
-     int *val_p = (int *) arg;
+     int **val_p = (int **) arg;
+     int* array = *val_p;
+     int seed=time(NULL);
+        seed = seed * getpid();
      for (int i = 0; i < ARRAY_SIZE; i++)
     {
-        val_p[i]= range_start+ rand_r(getpid())%(range_end-range_start);
+        
+        //array[i]= range_start+ rand()%(range_end-range_start);
+        array[i]= range_start+ rand_r(&seed)%(range_end-range_start);
     }
 
     pthread_exit(NULL);
@@ -65,9 +72,9 @@ int main(void) {
     // c[i] should equal a[i] + b[i]
     // Make sure to error check.
     // +1
-    *a = malloc(ARRAY_SIZE*sizeof(int));
-    *b = malloc(ARRAY_SIZE*sizeof(int));
-    *c = malloc(ARRAY_SIZE*sizeof(int));
+    int* a = malloc(ARRAY_SIZE*sizeof(int));
+    int* b = malloc(ARRAY_SIZE*sizeof(int));
+    int* c = malloc(ARRAY_SIZE*sizeof(int));
     
     if(a==NULL||b==NULL||c==NULL){
         printf("Not enough memory.");
@@ -80,35 +87,57 @@ int main(void) {
     // should be timed and the period printed.
     // +4
 
-    pthread_t pclock_t t;
+    
+    clock_t t;
+
     t = clock();
+    pthread_t p1;
     pthread_t p2;
-    pthread_create(&p1,NULL,&rand_init,&a);
-    pthread_create(&p2,NULL,&rand_init,&b);
-    pthread_join(p2, NULL);
+    pthread_create(&p1,NULL,rand_init,&a);
+    pthread_create(&p2,NULL,rand_init,&b);
     pthread_join(p1, NULL);
+    pthread_join(p2, NULL);
+    
     t=clock()-t;
     double time_taken = ((double)t)/CLOCKS_PER_SEC;
-    printf("Total init time: %.2f ms\n",(time_taken*100));
-
+    
+    printf("Total init time: %.2f ms\n",(time_taken*1000));
     // @TODO
     // Define and prepare two structs for each thread.
     // The structs should contain data relevent to the add operation.
     // +2
+    
     struct data d1;
     struct data d2;
+    d1.a= a;
+    d2.a= a;
+    d1.b=b;
+    d2.b=b;
+    d1.c=c;
+    d2.c=c;
+    d1.start_idx=0;
+    d2.start_idx=ARRAY_SIZE/2;
     
+
     // @TODO
     // Reuse your pthreads from earlier and time your add_arrays function
     // as it runs on both threads.
     // +2
-
-
+    t = clock();
+    pthread_create(&p1,NULL,add_arrays,&d1);
+    pthread_create(&p2,NULL,add_arrays,&d2);
+    pthread_join(p2, NULL);
+    pthread_join(p1, NULL);
+    t=clock()-t;
+    time_taken = ((double)t)/CLOCKS_PER_SEC;
     // @TODO
     // Print out the first 10 elements of the result array and the final
     // period for the add_arrays threaded function runs.
-    // +2
-    
+    // +2    
+    for (int i = 0; i < 10; i++) {     
+        printf("%d ", c[i]);     
+    }      
+    printf("\nTotal add time: %.2fms \n",(time_taken*1000));
 
     // Free the memory
     // +1
