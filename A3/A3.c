@@ -1,33 +1,118 @@
+#include <unistd.h>
 #include <stdio.h> 
 #include <stdlib.h>
 #include <time.h>	//used for timing - see last lab.
 #include <pthread.h>
 #include <semaphore.h>
 
-#define SIZE 10
 
-Mutex mutex;
-sem_t empty=SIZE;
-sem_t full=0;
+pthread_mutex_t mutex;
+sem_t empty;
+sem_t full;
 int front=-1;
 int rear=-1;
-struct request buffer[SIZE];
+struct request* buffer;
+int SIZE;
 struct request
 {
     int ID;
     int duration;
 };
+struct producer_info{
+    int sleep_time;
+    int max_duration;
+};
+struct consumer_info{
+    int id;
+};
+
+
+void* producer(void* arg) {
+
+    struct producer_info info = *(struct producer_info*) arg;
+//change to get from arguments
+int max_duration=info.max_duration;
+int sleep_time=info.sleep_time;
+
+//if full then wait
+int request_id=1;
+
+//if not full
+while(1){
+    sem_wait(&empty);
+    pthread_mutex_lock(&mutex);
+    if(front==-1){
+        front=0;
+        rear=0;
+    }
+    else if(rear==SIZE-1&&front!=0){
+        rear=0;
+        }
+    else{
+        rear++;
+        }
+        //make request
+
+        struct request req={.ID=request_id, .duration=1+ rand()%max_duration};
+        buffer[rear]=req;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);
+        printf("Producer: produced request ID %d, duration %d seconds at time %.2f \n",req.ID,req.duration,((double)clock())/CLOCKS_PER_SEC*1000);
+        request_id++;
+        printf("Producer: sleeping for %d seconds\n",sleep_time);
+        sleep(sleep_time);
+        
+}
+
+}
+void* consumer(void* arg){
+    
+    struct consumer_info info = *(struct consumer_info*) arg;
+    while (1)
+    {
+        struct request req;
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+        req=buffer[front];
+        if(front==rear)
+        {
+            front=-1;
+            rear=-1;
+        }
+        else if(front==SIZE-1){
+            req=buffer[front];
+            front=0;
+        }
+        else{
+            front++;
+        }
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);
+        printf("Consumer %d : assigned request ID %d, processing request for next %d seconds, current time is %.2f\n",info.id,req.ID,req.duration,((double)clock())/CLOCKS_PER_SEC*1000);
+        sleep(req.duration);
+        printf("Consumer %d :completed request ID %d at time %.2f\n", info.id,req.ID,req.duration,((double)clock())/CLOCKS_PER_SEC*1000);
+    }
+    
+
+}
 
 int main(){
-    int num_servants=10;
+
+    int num_servants=4;
+    SIZE=6;
+    buffer=malloc(SIZE*sizeof(struct request));
     pthread_t master ,servant[num_servants];
+
     pthread_mutex_init(&mutex, NULL);
     sem_init(&empty,0,SIZE);
     sem_init(&full,0,0);
-    pthread_create(&master, NULL, (void *)producer, NULL);
-    for (int i = 0; i < num_servants; i++)
+    struct producer_info pinfo={.max_duration=8,.sleep_time=3};
+    pthread_create(&master, NULL, (void *)producer, &pinfo);
+    
+    for (int i = 0; i <= num_servants; i++)
     {
-        pthread_create(&servant[i], NULL, (void *)consumer, NULL);
+        struct consumer_info cinfo={.id=i};
+        pthread_create(&servant[i], NULL, (void *)consumer, &cinfo);
     }
     pthread_join(master, NULL);
     for(int i = 0; i < num_servants; i++) {
@@ -42,70 +127,4 @@ int main(){
 
 }
 
-void* producer(void* arg) {
 
-//change to get from arguments
-int max_duration=5;
-int sleep_time=3;
-
-
-//if full then wait
-int request_id=1;
-
-//if not full
-while(true){
-    sem_wait(&empty);
-    pthread_mutex_lock(&mutex);
-    if(front==-1){
-        front=0;
-        rear=0;
-    }
-    else if(rear==SIZE-1&&front!=0){
-        rear=0;
-        }
-    else{
-        rear++;
-        }
-        //make request
-        struct request req={.ID=request_id, .duration=(rand()%max_duration)};
-        buffer[rear]=req;
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full);
-        printf("Producer made request id %d",request_id);
-        request_id++;
-        sleep(sleep_time);
-        
-
-}
-
-}
-
-void* consumer(void* arg){
-    int consumer_id=0;
-
-    while (true)
-    {
-        struct request req;
-        sem_wait(&empty);
-        pthread_mutex_lock(&mutex);
-        req=buffer[front];
-        if(front==rear)
-        {
-            front=-1;
-            rear=-1;
-        }
-        else if(front==size-1){
-            req=buffer[front];
-            front=0;
-        }
-        else{
-            front++;
-        }
-        printf("Consumer completed request %d",req.ID);
-        pthread_mutex_unlock(&mutex);
-        sem_post(&empty);
-        sleep(req.duration);
-    }
-    
-
-}
