@@ -12,7 +12,7 @@ sem_t full;
 int front=-1;
 int rear=-1;
 struct request* buffer;
-int SIZE;
+int SIZE=6;
 struct request
 {
     int ID;
@@ -89,26 +89,34 @@ void* consumer(void* arg){
         pthread_mutex_unlock(&mutex);
         sem_post(&empty);
         printf("Consumer %d : assigned request ID %d, processing request for next %d seconds, current time is %.2f\n",info.id,req.ID,req.duration,((double)clock())/CLOCKS_PER_SEC*1000);
-        sleep(req.duration);
-        printf("Consumer %d :completed request ID %d at time %.2f\n", info.id,req.ID,req.duration,((double)clock())/CLOCKS_PER_SEC*1000);
+        sleep(3);
+        printf("Consumer %d : completed request ID %d at time %.2f\n", info.id,req.ID,req.duration,((double)clock())*1000/CLOCKS_PER_SEC);
     }
     
 
 }
 
-int main(){
-
-    int num_servants=4;
-    SIZE=6;
+int main(int argc,char* argv[]){
+    if(argc!=4){
+        printf("Wrong number of arguments. Exiting.");
+        exit(1);
+    }
+    int num_servants=atoi(argv[1]);
+    int max_duration=atoi(argv[2]);
+    int sleep_time=atoi(argv[3]);
+    printf("Number of servant threads will be: %d\n",num_servants);
+    printf("Maximum duration of a request will be: %d\n",max_duration);
+    printf("Time that the producer will sleep will be: %d\n",sleep_time);
     buffer=malloc(SIZE*sizeof(struct request));
     pthread_t master ,servant[num_servants];
 
     pthread_mutex_init(&mutex, NULL);
     sem_init(&empty,0,SIZE);
     sem_init(&full,0,0);
-    struct producer_info pinfo={.max_duration=8,.sleep_time=3};
+    struct producer_info pinfo={.max_duration=max_duration,.sleep_time=sleep_time};
     pthread_create(&master, NULL, (void *)producer, &pinfo);
-    
+
+
     for (int i = 0; i <= num_servants; i++)
     {
         struct consumer_info cinfo={.id=i};
@@ -122,6 +130,7 @@ int main(){
     pthread_mutex_destroy(&mutex);
     sem_destroy(&empty);
     sem_destroy(&full);
+    free(buffer);
     return 0;
     
 
