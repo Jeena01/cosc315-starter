@@ -132,7 +132,7 @@ int main(int argc,char* argv[]){
     sem_destroy(&full);
     free(buffer);
     return 0;
-    
+
 
 }
 
